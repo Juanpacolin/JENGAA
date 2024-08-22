@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Preguntas Interactivo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #f0f8ff, #e6e6fa);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #666;
+        }
+
+        .color-button {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .color-button:hover {
+            transform: scale(1.1);
+        }
+
+        #red { background-color: #ff4c4c; }
+        #blue { background-color: #4c7dff; }
+        #green { background-color: #4cff88; }
+
+        #question-container, #result-container {
+            display: none;
+        }
+
+        .option {
+            display: block;
+            background-color: #f7f7f7;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4c7dff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3b5bcc;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Juego de Preguntas Interactivo</h1>
+        <h2>Elige un color para empezar:</h2>
+        <div id="color-selection">
+            <button id="red" class="color-button"></button>
+            <button id="blue" class="color-button"></button>
+            <button id="green" class="color-button"></button>
+        </div>
+
+        <div id="question-container">
+            <h2 id="question"></h2>
+            <form id="answers">
+                <!-- Las opciones de respuesta se generarán aquí -->
+            </form>
+            <button onclick="checkAnswer()">Enviar respuesta</button>
+        </div>
+
+        <div id="result-container">
+            <h2 id="result"></h2>
+            <button onclick="resetGame()">Volver al menú principal</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = {
+            red: [
+                {
+                    question: "¿Cuáles son dos servicios ecosistémicos provistos por bosques?",
+                    correct: "Plantas medicinales, madera, caucho natural, eliminación de carbono",
+                    options: ["Metales pesados, plaguicidas", "Edificios, fábricas", "Plantas medicinales, madera, caucho natural, eliminación de carbono"]
+                },
+                {
+                    question: "¿Cuáles son dos formas en las que los humanos contribuyen a la pérdida de biodiversidad?",
+                    correct: "Destrucción de hábitat, Fragmentación del hábitat, Contaminación, Sobre explotación, introducción de especies invasoras.",
+                    options: ["Uso de biocombustibles", "Destrucción de hábitat, Fragmentación del hábitat, Contaminación, Sobre explotación, introducción de especies invasoras.", "Promoción de la agricultura sostenible"]
+                },
+                {
+                    question: "¿Qué es una especie invasora?",
+                    correct: "Especie que se propaga rápidamente a través de grandes áreas",
+                    options: ["Especie en peligro de extinción", "Especie nativa de una región", "Especie que se propaga rápidamente a través de grandes áreas"]
+                },
+                {
+                    question: "¿Qué contaminantes pueden afectar la biodiversidad de los bosques?",
+                    correct: "Pesticidas, metales pesados, ácidos",
+                    options: ["Oxígeno, nitrógeno, azufre", "Pesticidas, metales pesados, ácidos", "Ruido, luz, dióxido de carbono"]
+                },
+                {
+                    question: "¿Qué puede causar la pérdida de hábitat?",
+                    correct: "Construcción de infraestructura, sobrepastoreo, cultivos, tala rasa de bosques.",
+                    options: ["Reforestación, conservación de suelos", "Construcción de infraestructura, sobrepastoreo, cultivos, tala rasa de bosques.", "Aumento de reservas naturales, urbanización controlada"]
+                },
+                {
+                    question: "¿Qué productores primarios pueden encontrarse en un bosque?",
+                    correct: "Plantas",
+                    options: ["Hongos", "Animales herbívoros", "Plantas"]
+                },
+                {
+                    question: "¿Qué consumidores primarios pueden encontrarse en un bosque?",
+                    correct: "Animales herbívoros",
+                    options: ["Animales carnívoros", "Bacterias descomponedoras", "Animales herbívoros"]
+                },
+                {
+                    question: "¿Qué consumidores secundarios pueden encontrarse en un bosque?",
+                    correct: "Animales carnívoros",
+                    options: ["Animales herbívoros", "Plantas epífitas", "Animales carnívoros"]
+                },
+                {
+                    question: "¿Qué puede pasar cuando un animal es eliminado de un ecosistema?",
+                    correct: "La cascada trófica se ve afectada, por lo que el ecosistema puede ser afectado de forma negativa.",
+                    options: ["El ecosistema se recupera rápidamente", "La cascada trófica se ve afectada, por lo que el ecosistema puede ser afectado de forma negativa.", "No ocurre ningún cambio significativo"]
+                },
+                {
+                    question: "¿Cuál es un ejemplo de la conservación de los bosques en Guatemala?",
+                    correct: "Concesiones forestales",
+                    options: ["Agricultura intensiva", "Deforestación selectiva", "Concesiones forestales"]
+                }
+            ],
+            blue: [
+                {
+                    question: "¿Qué es la huella ecológica?",
+                    correct: "Es una medida que calcula la naturaleza disponible y la que es utilizada por los humanos. Mide la demanda de una población por el suministro de recursos.",
+                    options: ["Cantidad de CO2 emitida por vehículos", "Es una medida que calcula la naturaleza disponible y la que es utilizada por los humanos. Mide la demanda de una población por el suministro de recursos.", "Calculo del uso de energía no renovable"]
+                },
+                {
+                    question: "¿De qué factores depende el impacto de la actividad humana en un ambiente?",
+                    correct: "La población, intensidad de actividad por persona y el tipo de actividad realizada.",
+                    options: ["La biodiversidad", "La población, intensidad de actividad por persona y el tipo de actividad realizada.", "La ubicación geográfica"]
+                },
+                {
+                    question: "La idea de que no se deben usar más recursos de los que se renuevan, para que las siguientes generaciones puedan tener acceso a los mismos recursos se llama…",
+                    correct: "Sostenibilidad.",
+                    options: ["Desarrollo sustentable", "Sostenibilidad.", "Protección de recursos"]
+                },
+                {
+                    question: "¿Cuál es el país con mayor emisión de carbono?",
+                    correct: "Catar",
+                    options: ["Estados Unidos", "Catar", "India"]
+                },
+                {
+                    question: "¿Qué es biocapacidad?",
+                    correct: "Capacidad de un área específica de generar abastecimiento regular de recursos renovables y absorber desechos de consumo.",
+                    options: ["Capacidad de producción agrícola", "Capacidad de un área específica de generar abastecimiento regular de recursos renovables y absorber desechos de consumo.", "Capacidad de reciclaje de materiales"]
+                },
+                {
+                    question: "¿Para qué sirve la huella ecológica y biocapacidad?",
+                    correct: "Sirven para mejorar sostenibilidad y bienestar, optimizar la inversión de proyectos públicos y reflexionar sobre el impacto personal en el planeta.",
+                    options: ["Para controlar la contaminación", "Sirven para mejorar sostenibilidad y bienestar, optimizar la inversión de proyectos públicos y reflexionar sobre el impacto personal en el planeta.", "Para incrementar la biodiversidad"]
+                },
+                {
+                    question: "¿Qué es el día de sobregiro?",
+                    correct: "Día en que la humanidad ha utilizado todos los recursos biológicos que la Tierra puede proveer y regenerar en un año.",
+                    options: ["Día en que se reduce la contaminación", "Día en que se celebra la biodiversidad", "Día en que la humanidad ha utilizado todos los recursos biológicos que la Tierra puede proveer y regenerar en un año."]
+                },
+                {
+                    question: "¿Cómo se le llama al conjunto de objetivos globales para erradicar la pobreza y proteger el planeta?",
+                    correct: "Objetivos de Desarrollo Sostenible.",
+                    options: ["Metas ambientales internacionales", "Programa de conservación global", "Objetivos de Desarrollo Sostenible."]
+                },
+                {
+                    question: "¿Qué acciones pueden mejorar la huella ecológica personal?",
+                    correct: "Reducir consumo de recursos, aumentar reciclaje, uso de energía renovable.",
+                    options: ["Aumentar consumo de productos desechables", "Reducir consumo de recursos, aumentar reciclaje, uso de energía renovable.", "Consumir más alimentos procesados"]
+                },
+                {
+                    question: "¿Qué indicador refleja la capacidad de un ecosistema para mantenerse saludable y funcional?",
+                    correct: "Índice de biodiversidad",
+                    options: ["Tasa de deforestación", "Índice de biodiversidad", "Producción de gases de efecto invernadero"]
+                }
+            ],
+            green: [
+                {
+                    question: "¿En qué consiste el ciclo de carbono?",
+                    correct: "El ciclo de carbono consiste en explicar los distintos intercambios que tiene este elemento con la atmósfera, los océanos y la tierra.",
+                    options: ["Transformación de energía en plantas", "Descomposición del oxígeno", "El ciclo de carbono consiste en explicar los distintos intercambios que tiene este elemento con la atmósfera, los océanos y la tierra."]
+                },
+                {
+                    question: "¿Qué actividades humanas tienen un impacto sobre el ciclo de carbono?",
+                    correct: "El ciclo de carbono se puede ver afectado al agregar CO2 en exceso a la atmósfera lo cual puede ocurrir por la quema de combustibles fósiles y la eliminación de vegetación.",
+                    options: ["Conservación de bosques", "Uso de energía renovable", "El ciclo de carbono se puede ver afectado al agregar CO2 en exceso a la atmósfera lo cual puede ocurrir por la quema de combustibles fósiles y la eliminación de vegetación."]
+                },
+                {
+                    question: "¿Cuál es el principal gas de efecto invernadero en la atmósfera?",
+                    correct: "Dióxido de carbono (CO2)",
+                    options: ["Metano (CH4)", "Óxidos de nitrógeno (NOx)", "Dióxido de carbono (CO2)"]
+                },
+                {
+                    question: "¿Qué actividad contribuye a la captura de carbono en el suelo?",
+                    correct: "Agricultura de conservación y plantación de árboles.",
+                    options: ["Uso intensivo de fertilizantes", "Agricultura de conservación y plantación de árboles.", "Construcción de infraestructuras"]
+                },
+                {
+                    question: "¿Cómo afecta la deforestación al ciclo del agua?",
+                    correct: "Disminuye la evapotranspiración, lo cual puede causar una reducción en las precipitaciones y un impacto en los ciclos hidrológicos.",
+                    options: ["Aumenta la humedad en el suelo", "Disminuye la evapotranspiración, lo cual puede causar una reducción en las precipitaciones y un impacto en los ciclos hidrológicos.", "No tiene impacto en el ciclo del agua"]
+                },
+                {
+                    question: "¿Qué es la acidificación de los océanos?",
+                    correct: "Es el proceso mediante el cual el CO2 se disuelve en el agua del mar, creando ácido carbónico y disminuyendo el pH del océano.",
+                    options: ["Un aumento en la salinidad del océano", "Un cambio en la temperatura del océano", "Es el proceso mediante el cual el CO2 se disuelve en el agua del mar, creando ácido carbónico y disminuyendo el pH del océano."]
+                },
+                {
+                    question: "¿Cómo pueden las políticas públicas ayudar a mitigar el cambio climático?",
+                    correct: "Promoviendo la reducción de emisiones de gases de efecto invernadero, fomentando el uso de energías renovables y estableciendo regulaciones ambientales.",
+                    options: ["Reduciendo el consumo de energía", "Promoviendo la reducción de emisiones de gases de efecto invernadero, fomentando el uso de energías renovables y estableciendo regulaciones ambientales.", "Aumentando el número de parques nacionales"]
+                },
+                {
+                    question: "¿Cuál es el efecto de la pérdida de hielo marino en los ecosistemas árticos?",
+                    correct: "Reduce el hábitat disponible para especies como osos polares y focas, y altera la cadena alimentaria de la región.",
+                    options: ["Aumenta la vida marina", "Reduce el hábitat disponible para especies como osos polares y focas, y altera la cadena alimentaria de la región.", "No tiene impacto en los ecosistemas"]
+                },
+                {
+                    question: "¿Qué impacto tiene la contaminación del aire en la salud humana?",
+                    correct: "Puede causar enfermedades respiratorias, cardiovasculares y aumentar el riesgo de cáncer.",
+                    options: ["Mejora la calidad del aire", "Puede causar enfermedades respiratorias, cardiovasculares y aumentar el riesgo de cáncer.", "No tiene impacto en la salud"]
+                },
+                {
+                    question: "¿Qué es la estrategia de adaptación al cambio climático?",
+                    correct: "Es un enfoque que busca ajustar sistemas y prácticas para minimizar los impactos negativos del cambio climático y aprovechar oportunidades.",
+                    options: ["Una técnica para reducir emisiones de gases de efecto invernadero", "Una estrategia para mejorar la producción agrícola", "Es un enfoque que busca ajustar sistemas y prácticas para minimizar los impactos negativos del cambio climático y aprovechar oportunidades."]
+                }
+            ]
+        };
+
+        let currentQuestions;
+        let correctAnswer;
+
+        function selectColor(color) {
+            document.getElementById('color-selection').style.display = 'none';
+            document.getElementById('question-container').style.display = 'block';
+
+            // Selecciona un conjunto de preguntas basado en el color
+            currentQuestions = questions[color];
+            showQuestion();
+        }
+
+        function showQuestion() {
+            // Selecciona una pregunta aleatoria del conjunto actual
+            const questionIndex = Math.floor(Math.random() * currentQuestions.length);
+            const question = currentQuestions[questionIndex];
+            document.getElementById('question').innerText = question.question;
+            
+            // Guardar la respuesta correcta
+            correctAnswer = question.correct;
+
+            // Limpia las opciones anteriores
+            const answersForm = document.getElementById('answers');
+            answersForm.innerHTML = '';
+
+            // Muestra las opciones de respuesta
+            question.options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.innerText = option;
+                optionElement.onclick = () => selectOption(option);
+                answersForm.appendChild(optionElement);
+            });
+        }
+
+        function selectOption(selected) {
+            document.querySelectorAll('.option').forEach(option => {
+                option.style.backgroundColor = option.innerText === correctAnswer ? '#d4edda' : '#f8d7da';
+            });
+
+            document.getElementById('result').innerText = selected === correctAnswer ? '¡Respuesta correcta!' : 'Respuesta incorrecta.';
+            document.getElementById('question-container').style.display = 'none';
+            document.getElementById('result-container').style.display = 'block';
+        }
+
+        function checkAnswer() {
+            const selectedOption = Array.from(document.querySelectorAll('.option')).find(option => option.style.backgroundColor === 'rgb(212, 237, 218)' || option.style.backgroundColor === 'rgb(248, 215, 218)');
+            if (selectedOption) {
+                selectOption(selectedOption.innerText);
+            } else {
+                document.getElementById('result').innerText = 'Selecciona una opción.';
+                document.getElementById('result-container').style.display = 'block';
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('color-selection').style.display = 'block';
+            document.getElementById('question-container').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+        }
+
+        // Asigna eventos a los botones de color
+        document.getElementById('red').onclick = () => selectColor('red');
+        document.getElementById('blue').onclick = () => selectColor('blue');
+        document.getElementById('green').onclick = () => selectColor('green');
+    </script>
+</body>
+</html>
